@@ -114,7 +114,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const muteBtn = document.getElementById("heroMute");
   if (!video || !clips.length) return;
 
-  bindPhoneVideo(video, fallback, clips[0].src, {
+  bindPhoneVideo(video, fallback, window.klippodClipSrc(clips[0]), {
     muted: true,
     autoplay: true,
     onReady: () => {
@@ -146,7 +146,7 @@ document.addEventListener("DOMContentLoaded", () => {
   track.innerHTML = clips
     .map(
       (c, i) => `
-    <article class="clip-slide${i === 0 ? " is-active" : ""}" data-id="${c.id}" data-title="${c.title}" data-desc="${c.desc}" data-src="${c.src}">
+    <article class="clip-slide${i === 0 ? " is-active" : ""}" data-id="${c.id}" data-title="${c.title}" data-desc="${c.desc}" data-src="${window.klippodClipSrc(c)}">
       <div class="phone">
         <div class="phone-bezel">
           <div class="phone-notch"></div>

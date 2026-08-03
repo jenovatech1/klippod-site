@@ -8,21 +8,21 @@ Landing page — https://jenovatech1.github.io/klippod-site/
 
 ## Showcase videos (owner only)
 
-Put 9:16 `.mp4` in `assets/clips/` then push:
+GitHub jelek buat file besar. Prefer URL eksternal di `assets/js/clips-data.js`.
 
-| File | Slot |
-|------|------|
-| `gamer-split.mp4` | Gamer Split |
-| `title-tts.mp4` | Title Card + TTS |
-| `auto-focus.mp4` | Auto Focus |
-| `dual-split.mp4` | Dual Split |
-| `podcast-side.mp4` | Podcast Side |
-| `opus-beat.mp4` | Opus Beat |
-| `karaoke-sweep.mp4` | Karaoke Sweep |
-| `punch-word.mp4` | Punch Word |
-| `border-pop.mp4` | Border Pop |
-| `dual-tone.mp4` | Dual Tone |
-| `fill-flash.mp4` | Fill Flash |
-| `side-glow.mp4` | Side Glow |
+### Opsi A — Google Drive (gampang, kadang goyang)
+1. Upload `.mp4` ke Drive
+2. Share → **Anyone with the link**
+3. Copy file id dari URL:
+   `https://drive.google.com/file/d/FILE_ID/view?...`
+4. Di `clips-data.js` isi:
+   `drive: "FILE_ID"`
+5. Commit + push (hanya JS kecil, bukan video)
 
-Edit `assets/js/clips-data.js` to add/remove slots.
+### Opsi B — URL .mp4 langsung (paling stabil)
+Firebase Storage / Cloudflare R2 / Bunny / S3:
+`src: "https://cdn.example.com/gamer-split.mp4"`
+(kosongkan `drive: ""`)
+
+### Opsi C — file kecil di repo
+`assets/clips/*.mp4` hanya kalau benar-benar ringan.
