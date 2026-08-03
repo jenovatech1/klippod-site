@@ -77,11 +77,12 @@ function posterFor(src) {
   return src.replace(/\.mp4($|\?)/i, ".jpg$1");
 }
 
-function bindPhoneVideo(video, fallback, src, { muted = true, autoplay = true } = {}) {
+function bindPhoneVideo(video, fallback, src, { muted = true, autoplay = true, onReady } = {}) {
   if (!video || !src) return;
-  const onReady = () => {
+  const markReady = () => {
     video.classList.add("is-ready");
     fallback?.classList.add("is-hidden");
+    onReady?.();
     if (autoplay) video.play().catch(() => {});
   };
   const onFail = () => {
@@ -98,8 +99,8 @@ function bindPhoneVideo(video, fallback, src, { muted = true, autoplay = true } 
   video.setAttribute("playsinline", "");
   video.poster = posterFor(src);
 
-  video.onloadeddata = onReady;
-  video.oncanplay = onReady;
+  video.onloadeddata = markReady;
+  video.oncanplay = markReady;
   video.onerror = onFail;
   video.src = src;
   video.load();
@@ -113,13 +114,13 @@ document.addEventListener("DOMContentLoaded", () => {
   const muteBtn = document.getElementById("heroMute");
   if (!video || !clips.length) return;
 
-  const first = clips[0];
-  bindPhoneVideo(video, fallback, first.src, { muted: true, autoplay: true });
-
-  const revealMute = () => {
-    if (video.classList.contains("is-ready") && muteBtn) muteBtn.hidden = false;
-  };
-  video.addEventListener("loadeddata", revealMute);
+  bindPhoneVideo(video, fallback, clips[0].src, {
+    muted: true,
+    autoplay: true,
+    onReady: () => {
+      if (muteBtn) muteBtn.hidden = false;
+    },
+  });
 
   muteBtn?.addEventListener("click", () => {
     video.muted = !video.muted;
@@ -130,7 +131,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
-/* Showcase carousel with video-in-phone */
+/* Showcase — phone video + title/desc + dots. Autoplay active only. */
 document.addEventListener("DOMContentLoaded", () => {
   const track = document.getElementById("showcaseTrack");
   const clips = window.KLIPPOD_CLIPS || [];
@@ -139,23 +140,13 @@ document.addEventListener("DOMContentLoaded", () => {
   const titleEl = document.getElementById("slideTitle");
   const descEl = document.getElementById("slideDesc");
   const dotsEl = document.getElementById("slideDots");
-  const thumbsEl = document.getElementById("thumbRail");
   const prevBtn = document.querySelector(".nav-arrow.prev");
   const nextBtn = document.querySelector(".nav-arrow.next");
-  const filters = Array.from(document.querySelectorAll(".filter-chip"));
 
-  const icons = {
-    tts: "bi-mic",
-    subs: "bi-chat-quote",
-    cut: "bi-scissors",
-    layout: "bi-layout-split",
-  };
-
-  // Build slides once
   track.innerHTML = clips
     .map(
       (c, i) => `
-    <article class="clip-slide${i === 0 ? " is-active" : ""}" data-id="${c.id}" data-tags="${c.tags}" data-title="${c.title}" data-desc="${c.desc}" data-src="${c.src}">
+    <article class="clip-slide${i === 0 ? " is-active" : ""}" data-id="${c.id}" data-title="${c.title}" data-desc="${c.desc}" data-src="${c.src}">
       <div class="phone">
         <div class="phone-bezel">
           <div class="phone-notch"></div>
@@ -165,7 +156,6 @@ document.addEventListener("DOMContentLoaded", () => {
               <img src="assets/images/logo.png" alt="" class="fallback-logo" />
               <span>${c.title}</span>
             </div>
-            <div class="phone-label">${c.title}</div>
             <button type="button" class="phone-mute" aria-label="Toggle sound" hidden>
               <i class="bi bi-volume-mute-fill"></i>
             </button>
@@ -177,111 +167,65 @@ document.addEventListener("DOMContentLoaded", () => {
     .join("");
 
   const slides = Array.from(track.querySelectorAll(".clip-slide"));
-
-  // Probe / bind each video
-  slides.forEach((slide) => {
-    const video = slide.querySelector(".phone-video");
-    const fallback = slide.querySelector(".phone-fallback");
-    const muteBtn = slide.querySelector(".phone-mute");
-    const src = slide.dataset.src;
-    bindPhoneVideo(video, fallback, src, { muted: true, autoplay: false });
-
-    video?.addEventListener("loadeddata", () => {
-      slide.classList.add("has-video");
-      if (muteBtn) muteBtn.hidden = false;
-    });
-    video?.addEventListener("error", () => slide.classList.remove("has-video"));
-
-    muteBtn?.addEventListener("click", (e) => {
-      e.stopPropagation();
-      if (!video) return;
-      video.muted = !video.muted;
-      muteBtn.innerHTML = video.muted
-        ? '<i class="bi bi-volume-mute-fill"></i>'
-        : '<i class="bi bi-volume-up-fill"></i>';
-      video.play().catch(() => {});
-    });
-  });
-
-  let filter = "all";
   let index = 0;
   let timer = null;
   let touching = false;
   let startX = 0;
 
-  const visible = () =>
-    slides
-      .map((s, i) => ({ s, i }))
-      .filter(({ s }) => filter === "all" || (s.dataset.tags || "").includes(filter));
-
   const pauseAll = () => {
     slides.forEach((s) => {
       const v = s.querySelector(".phone-video");
-      if (v && !v.paused) v.pause();
+      if (v && !v.paused) {
+        v.pause();
+        try {
+          v.currentTime = 0;
+        } catch (_) {}
+      }
     });
   };
 
   const playActive = () => {
-    const list = visible();
-    if (!list.length) return;
-    const slide = list[index]?.s;
+    const slide = slides[index];
     const video = slide?.querySelector(".phone-video");
     if (!video || !slide.classList.contains("has-video")) return;
+    pauseAll();
     video.currentTime = 0;
     video.play().catch(() => {});
   };
 
-  const renderChrome = () => {
-    const list = visible();
+  const renderDots = () => {
+    if (!dotsEl) return;
     dotsEl.innerHTML = "";
-    thumbsEl.innerHTML = "";
-    list.forEach(({ s }, localIdx) => {
+    slides.forEach((_, i) => {
       const dot = document.createElement("button");
       dot.type = "button";
-      dot.setAttribute("aria-label", `Go to slide ${localIdx + 1}`);
-      if (localIdx === index) dot.classList.add("is-active");
-      dot.addEventListener("click", () => go(localIdx, true));
+      dot.setAttribute("aria-label", `Go to slide ${i + 1}`);
+      if (i === index) dot.classList.add("is-active");
+      dot.addEventListener("click", () => go(i, true));
       dotsEl.appendChild(dot);
-
-      const tag = (s.dataset.tags || "tts").split(/\s+/)[0];
-      const thumb = document.createElement("button");
-      thumb.type = "button";
-      thumb.className = "thumb" + (localIdx === index ? " is-active" : "");
-      thumb.innerHTML = `<i class="t-ico bi ${icons[tag] || "bi-play-circle"}"></i><span class="t-label">${s.dataset.title || "Clip"}</span>`;
-      thumb.addEventListener("click", () => go(localIdx, true));
-      thumbsEl.appendChild(thumb);
     });
   };
 
   const apply = () => {
-    const list = visible();
-    if (!list.length) return;
-    if (index >= list.length) index = 0;
-    const currentGlobal = list[index].i;
+    if (index < 0) index = slides.length - 1;
+    if (index >= slides.length) index = 0;
 
     pauseAll();
 
     slides.forEach((s, i) => {
-      const show = list.some((x) => x.i === i);
-      s.style.display = show ? "" : "none";
-      s.classList.toggle("is-active", i === currentGlobal);
+      s.classList.toggle("is-active", i === index);
     });
+    track.style.transform = `translateX(-${index * 100}%)`;
 
-    const shown = slides.filter((s) => s.style.display !== "none");
-    const activeShownIdx = shown.findIndex((s) => s.classList.contains("is-active"));
-    track.style.transform = `translateX(-${Math.max(0, activeShownIdx) * 100}%)`;
-
-    const active = slides[currentGlobal];
+    const active = slides[index];
     if (titleEl) titleEl.textContent = active.dataset.title || "";
     if (descEl) descEl.textContent = active.dataset.desc || "";
-    renderChrome();
+    renderDots();
     playActive();
   };
 
-  const go = (localIdx, user) => {
-    const list = visible();
-    if (!list.length) return;
-    index = ((localIdx % list.length) + list.length) % list.length;
+  const go = (i, user) => {
+    index = ((i % slides.length) + slides.length) % slides.length;
     apply();
     if (user) restart();
   };
@@ -293,19 +237,34 @@ document.addEventListener("DOMContentLoaded", () => {
     clearInterval(timer);
     timer = setInterval(() => {
       if (!touching && !document.hidden) next(false);
-    }, 5200);
+    }, 5500);
   };
 
-  filters.forEach((btn) => {
-    btn.addEventListener("click", () => {
-      filters.forEach((b) => {
-        b.classList.toggle("is-active", b === btn);
-        b.setAttribute("aria-selected", b === btn ? "true" : "false");
-      });
-      filter = btn.dataset.filter || "all";
-      index = 0;
-      apply();
-      restart();
+  slides.forEach((slide, i) => {
+    const video = slide.querySelector(".phone-video");
+    const fallback = slide.querySelector(".phone-fallback");
+    const muteBtn = slide.querySelector(".phone-mute");
+
+    bindPhoneVideo(video, fallback, slide.dataset.src, {
+      muted: true,
+      autoplay: false,
+      onReady: () => {
+        slide.classList.add("has-video");
+        if (muteBtn) muteBtn.hidden = false;
+        if (i === index) playActive();
+      },
+    });
+
+    video?.addEventListener("error", () => slide.classList.remove("has-video"));
+
+    muteBtn?.addEventListener("click", (e) => {
+      e.stopPropagation();
+      if (!video) return;
+      video.muted = !video.muted;
+      muteBtn.innerHTML = video.muted
+        ? '<i class="bi bi-volume-mute-fill"></i>'
+        : '<i class="bi bi-volume-up-fill"></i>';
+      if (slide.classList.contains("is-active")) video.play().catch(() => {});
     });
   });
 
