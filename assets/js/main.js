@@ -69,155 +69,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
-/**
- * Try Drive stream URLs in a real <video> (object-fit + muted autoplay).
- * If all fail → Drive preview iframe (manual play, less perfect fit).
- */
-function setupClipMedia(slide, clip, { isActive, onMode }) {
-  const screen = slide.querySelector(".phone-screen");
-  const fallback = slide.querySelector(".phone-fallback");
-  const driveId = (clip.drive || "").trim();
-  const directSrc = (clip.src || "").trim();
-
-  let video = null;
-  let iframe = null;
-  let mode = "none"; // video | iframe
-
-  const hideFallback = () => fallback?.classList.add("is-hidden");
-  const showFallback = () => fallback?.classList.remove("is-hidden");
-
-  const ensureVideo = () => {
-    if (video) return video;
-    if (iframe) {
-      iframe.remove();
-      iframe = null;
-    }
-    video = document.createElement("video");
-    video.className = "phone-video";
-    video.setAttribute("playsinline", "");
-    video.setAttribute("webkit-playsinline", "");
-    video.muted = true;
-    video.defaultMuted = true;
-    video.loop = true;
-    video.playsInline = true;
-    video.preload = "auto";
-    screen.insertBefore(video, fallback);
-    return video;
-  };
-
-  const ensureIframe = () => {
-    if (iframe) return iframe;
-    if (video) {
-      video.remove();
-      video = null;
-    }
-    iframe = document.createElement("iframe");
-    iframe.className = "phone-drive";
-    iframe.title = clip.title || "Clip";
-    iframe.allow = "autoplay; encrypted-media; picture-in-picture";
-    iframe.setAttribute("allowfullscreen", "");
-    iframe.setAttribute("loading", "eager");
-    screen.insertBefore(iframe, fallback);
-    return iframe;
-  };
-
-  const tryVideoUrls = (urls) =>
-    new Promise((resolve) => {
-      if (!urls.length) {
-        resolve(false);
-        return;
-      }
-      const v = ensureVideo();
-      let i = 0;
-
-      const fail = () => {
-        i += 1;
-        if (i >= urls.length) {
-          resolve(false);
-          return;
-        }
-        v.src = urls[i];
-        v.load();
-      };
-
-      const ok = () => {
-        v.classList.add("is-ready");
-        hideFallback();
-        mode = "video";
-        onMode?.("video");
-        resolve(true);
-      };
-
-      v.onloadeddata = ok;
-      v.oncanplay = ok;
-      v.onerror = fail;
-      v.src = urls[0];
-      v.load();
-    });
-
-  const useIframe = () => {
-    const frame = ensureIframe();
-    mode = "iframe";
-    onMode?.("iframe");
-    // only set src when active — handled by sync()
-    return frame;
-  };
-
-  const init = async () => {
-    showFallback();
-    if (directSrc) {
-      const ok = await tryVideoUrls([directSrc]);
-      if (ok) return;
-    }
-    if (driveId) {
-      const candidates = window.klippodDriveStreamCandidates?.(driveId) || [];
-      const ok = await tryVideoUrls(candidates);
-      if (ok) return;
-      useIframe();
-      hideFallback();
-      return;
-    }
-    showFallback();
-  };
-
-  const sync = async (active) => {
-    if (mode === "none") await init();
-
-    if (mode === "video" && video) {
-      if (active) {
-        video.muted = true;
-        try {
-          video.currentTime = 0;
-        } catch (_) {}
-        const p = video.play();
-        if (p) p.catch(() => {});
-      } else {
-        video.pause();
-        try {
-          video.currentTime = 0;
-        } catch (_) {}
-      }
-      return;
-    }
-
-    if (mode === "iframe" && iframe && driveId) {
-      const preview = window.klippodDrivePreview(driveId);
-      if (active) {
-        // Bust cache + nudge autoplay where Drive allows it
-        iframe.src = `${preview}?t=${Date.now()}`;
-        iframe.classList.add("is-ready");
-        hideFallback();
-      } else {
-        iframe.removeAttribute("src");
-        iframe.classList.remove("is-ready");
-      }
-    }
-  };
-
-  return { init, sync, getMode: () => mode };
-}
-
-/* Showcase */
+/* Showcase — only <video>, no Drive iframe (avoids double play buttons) */
 document.addEventListener("DOMContentLoaded", () => {
   const track = document.getElementById("showcaseTrack");
   const clips = window.KLIPPOD_CLIPS || [];
@@ -230,49 +82,55 @@ document.addEventListener("DOMContentLoaded", () => {
   const nextBtn = document.querySelector(".nav-arrow.next");
 
   track.innerHTML = clips
-    .map(
-      (c, i) => `
-    <article class="clip-slide${i === 0 ? " is-active" : ""}" data-id="${c.id}" data-title="${c.title}" data-desc="${c.desc}">
+    .map((c, i) => {
+      const src = window.klippodClipSrc(c);
+      return `
+    <article class="clip-slide${i === 0 ? " is-active" : ""}" data-id="${c.id}" data-title="${c.title}" data-desc="${c.desc}" data-src="${src}">
       <div class="phone">
         <div class="phone-bezel">
           <div class="phone-notch"></div>
           <div class="phone-screen">
+            <video class="phone-video" playsinline webkit-playsinline muted loop preload="auto"></video>
             <div class="phone-fallback">
               <img src="assets/images/logo.png" alt="" class="fallback-logo" />
               <span>${c.title}</span>
             </div>
-            <button type="button" class="phone-play" aria-label="Play clip" hidden>
-              <i class="bi bi-play-fill"></i>
-            </button>
           </div>
         </div>
       </div>
-    </article>`
-    )
+    </article>`;
+    })
     .join("");
 
   const slides = Array.from(track.querySelectorAll(".clip-slide"));
-  const controllers = slides.map((slide, i) => {
-    const ctrl = setupClipMedia(slide, clips[i], {
-      onMode: (mode) => {
-        const playBtn = slide.querySelector(".phone-play");
-        // Play tip only for iframe mode (Drive preview rarely autoplays)
-        if (playBtn) playBtn.hidden = mode !== "iframe";
-      },
-    });
-    const playBtn = slide.querySelector(".phone-play");
-    playBtn?.addEventListener("click", (e) => {
-      e.stopPropagation();
-      // Re-load preview; user gesture helps Drive start
-      ctrl.sync(true);
-    });
-    return ctrl;
-  });
-
   let index = 0;
   let timer = null;
   let touching = false;
   let startX = 0;
+
+  const pauseAll = () => {
+    slides.forEach((s) => {
+      const v = s.querySelector(".phone-video");
+      if (!v) return;
+      v.pause();
+      try {
+        v.currentTime = 0;
+      } catch (_) {}
+    });
+  };
+
+  const playActive = () => {
+    const slide = slides[index];
+    const video = slide?.querySelector(".phone-video");
+    if (!video || !slide.classList.contains("has-video")) return;
+    pauseAll();
+    video.muted = true;
+    video.defaultMuted = true;
+    try {
+      video.currentTime = 0;
+    } catch (_) {}
+    video.play().catch(() => {});
+  };
 
   const renderDots = () => {
     if (!dotsEl) return;
@@ -287,7 +145,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   };
 
-  const apply = async () => {
+  const apply = () => {
     if (index < 0) index = slides.length - 1;
     if (index >= slides.length) index = 0;
 
@@ -298,8 +156,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (titleEl) titleEl.textContent = active.dataset.title || "";
     if (descEl) descEl.textContent = active.dataset.desc || "";
     renderDots();
-
-    await Promise.all(controllers.map((c, i) => c.sync(i === index)));
+    playActive();
   };
 
   const go = (i, user) => {
@@ -315,8 +172,40 @@ document.addEventListener("DOMContentLoaded", () => {
     clearInterval(timer);
     timer = setInterval(() => {
       if (!touching && !document.hidden) next(false);
-    }, 12000);
+    }, 10000);
   };
+
+  slides.forEach((slide, i) => {
+    const video = slide.querySelector(".phone-video");
+    const fallback = slide.querySelector(".phone-fallback");
+    const src = slide.dataset.src;
+    if (!video || !src) return;
+
+    video.muted = true;
+    video.defaultMuted = true;
+    video.playsInline = true;
+    video.loop = true;
+    video.setAttribute("playsinline", "");
+    video.setAttribute("muted", "");
+
+    const ready = () => {
+      slide.classList.add("has-video");
+      video.classList.add("is-ready");
+      fallback?.classList.add("is-hidden");
+      if (i === index) playActive();
+    };
+
+    video.addEventListener("loadeddata", ready);
+    video.addEventListener("canplay", ready);
+    video.addEventListener("error", () => {
+      slide.classList.remove("has-video");
+      video.classList.remove("is-ready");
+      fallback?.classList.remove("is-hidden");
+    });
+
+    video.src = src;
+    video.load();
+  });
 
   prevBtn?.addEventListener("click", () => prev(true));
   nextBtn?.addEventListener("click", () => next(true));
@@ -347,13 +236,10 @@ document.addEventListener("DOMContentLoaded", () => {
   stage?.addEventListener("mouseleave", restart);
 
   document.addEventListener("visibilitychange", () => {
-    if (document.hidden) controllers.forEach((c) => c.sync(false));
-    else apply();
+    if (document.hidden) pauseAll();
+    else playActive();
   });
 
-  // Warm up first clip ASAP
-  Promise.all(controllers.map((c) => c.init())).then(() => {
-    apply();
-    restart();
-  });
+  apply();
+  restart();
 });

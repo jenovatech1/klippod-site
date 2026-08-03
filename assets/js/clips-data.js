@@ -22,14 +22,10 @@ window.KLIPPOD_CLIPS = [
   },
 ];
 
-/** Direct stream for <video> — autoplay + object-fit cover. */
-window.klippodDriveStreamCandidates = function (id) {
-  const enc = encodeURIComponent(id);
-  return [
-    `https://drive.usercontent.google.com/download?id=${enc}&export=download&confirm=t`,
-  ];
-};
-
-window.klippodDrivePreview = function (id) {
-  return `https://drive.google.com/file/d/${encodeURIComponent(id)}/preview`;
+window.klippodClipSrc = function (clip) {
+  const id = (clip.drive || "").trim();
+  if (id) {
+    return `https://drive.usercontent.google.com/download?id=${encodeURIComponent(id)}&export=download&confirm=t`;
+  }
+  return clip.src || "";
 };
