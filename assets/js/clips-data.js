@@ -1,12 +1,3 @@
-/**
- * Showcase clips — drop vertical .mp4 into assets/clips/ with the same filename.
- * Optional poster: same name as .jpg/.webp (e.g. tts-title.jpg).
- *
- * Tips:
- * - Prefer 9:16 (1080x1920) Shorts/Reels exports
- * - Keep files under ~8–15MB for GitHub Pages
- * - After upload: commit + push, then hard-refresh the site
- */
 window.KLIPPOD_CLIPS = [
   {
     id: "tts-title",

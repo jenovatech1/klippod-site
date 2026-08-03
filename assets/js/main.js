@@ -163,7 +163,7 @@ document.addEventListener("DOMContentLoaded", () => {
             <video class="phone-video" playsinline muted loop preload="metadata"></video>
             <div class="phone-fallback">
               <img src="assets/images/logo.png" alt="" class="fallback-logo" />
-              <span>Drop <code>${(c.src || "").split("/").pop()}</code></span>
+              <span>${c.title}</span>
             </div>
             <div class="phone-label">${c.title}</div>
             <button type="button" class="phone-mute" aria-label="Toggle sound" hidden>

@@ -519,15 +519,6 @@ a:not(.btn):not(.social-icon):not(.jenovatech-link):not(.store-btn):not(.filter-
   color: var(--brand-green);
 }
 
-.replace-hint {
-  margin-top: 22px;
-  font-size: 12px;
-}
-.replace-hint code {
-  color: var(--brand-green-2);
-  font-size: 11px;
-}
-
 /* Features / download */
 .btn-primary {
   background: var(--brand-green);
