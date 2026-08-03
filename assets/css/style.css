@@ -255,6 +255,24 @@ a:not(.btn):not(.social-icon):not(.jenovatech-link):not(.store-btn):not(.filter-
 .phone-video.is-ready {
   opacity: 1;
 }
+.phone-drive {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+  z-index: 1;
+  /* Crop Drive player chrome so clip fills the phone */
+  transform: scale(1.45);
+  transform-origin: center center;
+  pointer-events: auto;
+  background: #000;
+}
+.phone-drive.is-ready {
+  opacity: 1;
+}
 .phone-shot {
   position: absolute;
   inset: 0;

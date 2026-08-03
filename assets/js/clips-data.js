@@ -1,6 +1,6 @@
 /**
  * Showcase — Drive file id (share: Anyone with the link).
- * drive: "FILE_ID"  OR  src: "https://...mp4"
+ * drive: "FILE_ID"  OR  src: "https://cdn.../file.mp4" (direct mp4)
  */
 window.KLIPPOD_CLIPS = [
   {
@@ -23,11 +23,12 @@ window.KLIPPOD_CLIPS = [
   },
 ];
 
+window.klippodDrivePreview = function (id) {
+  return `https://drive.google.com/file/d/${encodeURIComponent(id)}/preview`;
+};
+
 window.klippodClipSrc = function (clip) {
   const id = (clip.drive || "").trim();
-  if (id) {
-    // confirm=t helps skip the Drive virus-scan interstitial on many files
-    return `https://drive.google.com/uc?export=download&confirm=t&id=${encodeURIComponent(id)}`;
-  }
+  if (id) return window.klippodDrivePreview(id);
   return clip.src || "";
 };
