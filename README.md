@@ -8,7 +8,7 @@ Landing page — https://jenovatech1.github.io/klippod-site/
 
 ## Showcase videos (owner only)
 
-Put 9:16 `.mp4` files in `assets/clips/` then push:
+Put 9:16 `.mp4` in `assets/clips/` then push:
 
 | File | Slot |
 |------|------|
@@ -17,10 +17,12 @@ Put 9:16 `.mp4` files in `assets/clips/` then push:
 | `auto-focus.mp4` | Auto Focus |
 | `dual-split.mp4` | Dual Split |
 | `podcast-side.mp4` | Podcast Side |
-| `font-anton.mp4` | Font · Anton |
-| `font-archivo.mp4` | Font · Archivo Black |
-| `font-league.mp4` | Font · League Spartan |
-| `font-montserrat.mp4` | Font · Montserrat |
-| `font-montserrat-italic.mp4` | Font · Montserrat Italic |
+| `opus-beat.mp4` | Opus Beat |
+| `karaoke-sweep.mp4` | Karaoke Sweep |
+| `punch-word.mp4` | Punch Word |
+| `border-pop.mp4` | Border Pop |
+| `dual-tone.mp4` | Dual Tone |
+| `fill-flash.mp4` | Fill Flash |
+| `side-glow.mp4` | Side Glow |
 
-Edit slots in `assets/js/clips-data.js` if needed.
+Edit `assets/js/clips-data.js` to add/remove slots.
