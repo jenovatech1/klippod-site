@@ -1,31 +1,28 @@
 /**
- * Showcase — Drive file id (Anyone with the link) OR direct src mp4 URL.
+ * Showcase clips — hosted on GitHub Releases (clean <video> autoplay).
+ * https://github.com/jenovatech1/klippod-site/releases/tag/clips-v1
  */
 window.KLIPPOD_CLIPS = [
   {
     id: "title-tts",
     title: "Title Card + TTS",
     desc: "Cold open dengan title card bold dan voiceover TTS.",
-    drive: "1hxR_HF-N9ikKUa5dC0rImQ2Jhczrq0JL",
+    src: "https://github.com/jenovatech1/klippod-site/releases/download/clips-v1/title-tts.mp4",
   },
   {
     id: "dual-split",
     title: "Dual Split",
     desc: "Dua sumber video — cocok untuk podcast, reaksi, atau commentary.",
-    drive: "1usXqEUV2Cryx8Dyv6GphUvT8XfLU7L2A",
+    src: "https://github.com/jenovatech1/klippod-site/releases/download/clips-v1/dual-split.mp4",
   },
   {
     id: "auto-focus",
     title: "Auto Focus",
     desc: "Kamera mengikuti wajah dan momen penting secara otomatis.",
-    drive: "19o8Ph3qov6FhLZNg7Md5JslFUP8mYfsh",
+    src: "https://github.com/jenovatech1/klippod-site/releases/download/clips-v1/auto-focus.mp4",
   },
 ];
 
 window.klippodClipSrc = function (clip) {
-  const id = (clip.drive || "").trim();
-  if (id) {
-    return `https://drive.usercontent.google.com/download?id=${encodeURIComponent(id)}&export=download&confirm=t`;
-  }
   return clip.src || "";
 };
