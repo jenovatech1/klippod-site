@@ -110,6 +110,8 @@ a:not(.btn):not(.social-icon):not(.jenovatech-link):not(.store-btn):not(.filter-
 .hero-section a,
 .hero-section .btn,
 .hero-section .store-btn,
+.hero-section .phone,
+.hero-section .phone-mute,
 .navbar a,
 .navbar button { pointer-events: auto; }
 
@@ -181,13 +183,19 @@ a:not(.btn):not(.social-icon):not(.jenovatech-link):not(.store-btn):not(.filter-
   box-shadow: 0 12px 28px rgba(0, 0, 0, 0.3);
 }
 
+.brand-logo {
+  border-radius: 8px;
+  object-fit: cover;
+  background: #fff;
+}
+
 .hero-stage {
   display: grid;
   place-items: center;
   pointer-events: auto;
 }
 .hero-phone {
-  transform: rotate(4deg);
+  transform: rotate(3deg);
   transition: transform 0.4s cubic-bezier(0.22, 0.61, 0.36, 1);
 }
 @media (hover: hover) and (pointer: fine) {
@@ -196,302 +204,126 @@ a:not(.btn):not(.social-icon):not(.jenovatech-link):not(.store-btn):not(.filter-
   }
 }
 
-/* Phone frame */
+/* Realistic phone mockup — video fills the screen */
 .phone {
-  width: min(260px, 72vw);
-  aspect-ratio: 9 / 19;
-  border-radius: 28px;
-  background: #0a0a0a;
-  border: 2px solid #2c2c2c;
-  box-shadow:
-    0 24px 50px rgba(0, 0, 0, 0.5),
-    inset 0 0 0 3px #141414;
-  padding: 8px;
+  width: min(270px, 74vw);
   position: relative;
   transition: transform 0.35s ease, box-shadow 0.35s ease;
 }
+.phone-bezel {
+  aspect-ratio: 9 / 19.2;
+  border-radius: 34px;
+  background: linear-gradient(160deg, #2a2a2a, #0d0d0d 40%, #1a1a1a);
+  border: 2px solid #3a3a3a;
+  box-shadow:
+    0 28px 56px rgba(0, 0, 0, 0.55),
+    inset 0 0 0 2px #111,
+    0 0 0 1px rgba(57, 181, 74, 0.08);
+  padding: 10px;
+  position: relative;
+}
 .phone-notch {
   position: absolute;
-  top: 14px;
+  top: 16px;
   left: 50%;
   transform: translateX(-50%);
-  width: 38%;
-  height: 8px;
+  width: 36%;
+  height: 10px;
   border-radius: 99px;
-  background: #1a1a1a;
-  z-index: 3;
+  background: #0a0a0a;
+  z-index: 4;
+  box-shadow: inset 0 0 0 1px #222;
 }
-.clip-screen {
+.phone-screen {
   position: relative;
   height: 100%;
-  border-radius: 20px;
+  border-radius: 24px;
   overflow: hidden;
-  background: #101614;
+  background: #0a100e;
 }
-
-.clip-bg {
+.phone-video {
   position: absolute;
   inset: 0;
-  background:
-    radial-gradient(120% 80% at 30% 20%, rgba(57, 181, 74, 0.35), transparent 50%),
-    linear-gradient(160deg, #1a2e24, #0c1210 55%, #152018);
-  animation: bgDrift 8s ease-in-out infinite alternate;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  background: #0a100e;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+  z-index: 1;
 }
-@keyframes bgDrift {
-  from { transform: scale(1); }
-  to { transform: scale(1.08) translateY(-2%); }
+.phone-video.is-ready {
+  opacity: 1;
 }
-
-.title-card,
-.drop-card,
-.neon-box,
-.punch-line,
-.caption,
-.tts-chip,
-.hook-badge,
-.clip-meta {
-  position: relative;
-  z-index: 2;
-}
-
-.title-card {
-  margin: 28% 12px 0;
-  font-weight: 900;
-  font-size: clamp(15px, 4.2vw, 20px);
-  line-height: 1.2;
-  text-align: center;
-  text-shadow: 0 4px 18px rgba(0, 0, 0, 0.65);
-  animation: titleIn 0.7s ease both;
-}
-@keyframes titleIn {
-  from { opacity: 0; transform: translateY(12px) scale(0.96); }
-  to { opacity: 1; transform: none; }
-}
-
-.tts-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  margin: 12px 0 0 14px;
-  background: rgba(0, 0, 0, 0.55);
-  border: 1px solid rgba(57, 181, 74, 0.45);
-  color: var(--brand-green-2);
-  font-size: 11px;
-  font-weight: 700;
-  padding: 6px 10px;
-  border-radius: 999px;
-  backdrop-filter: blur(6px);
-}
-.tts-chip i { animation: pulseSoft 1.2s ease-in-out infinite; }
-@keyframes pulseSoft {
-  0%, 100% { opacity: 0.55; }
-  50% { opacity: 1; }
-}
-
-.caption {
+.phone-fallback {
   position: absolute;
-  left: 10px;
-  right: 10px;
-  bottom: 18%;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 20px;
   text-align: center;
-  font-weight: 800;
-  font-size: 15px;
-  letter-spacing: 0.2px;
-  text-transform: lowercase;
+  background:
+    radial-gradient(120% 80% at 30% 20%, rgba(57, 181, 74, 0.28), transparent 55%),
+    linear-gradient(160deg, #1a2e24, #0c1210 55%, #152018);
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 12px;
+  font-weight: 600;
+  transition: opacity 0.3s ease;
 }
-.caption span {
-  display: inline-block;
-  margin: 0 2px;
-  padding: 2px 4px;
-  border-radius: 6px;
-  color: rgba(255, 255, 255, 0.55);
-  transition: color 0.25s ease, background 0.25s ease, transform 0.25s ease;
+.phone-fallback.is-hidden {
+  opacity: 0;
+  pointer-events: none;
 }
-.caption span.on,
-.caption.karaoke span.on {
-  color: #0b0b0b;
-  background: var(--brand-green);
-  transform: scale(1.08);
+.fallback-logo {
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  object-fit: cover;
+  background: #fff;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
 }
-.caption.big { font-size: 18px; bottom: 28%; }
-.clip-meta {
+.phone-mute {
+  position: absolute;
+  right: 10px;
+  bottom: 12px;
+  z-index: 5;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  backdrop-filter: blur(6px);
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+.phone-mute:hover {
+  transform: scale(1.06);
+  background: rgba(57, 181, 74, 0.35);
+}
+.clip-slide .phone-label {
   position: absolute;
   left: 12px;
   right: 12px;
   bottom: 14px;
+  z-index: 3;
+  text-align: center;
   font-size: 11px;
-  color: rgba(255, 255, 255, 0.55);
-  text-align: center;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.85);
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.7);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.25s ease;
 }
-
-.theme-neon .clip-bg {
-  background: linear-gradient(180deg, #0b0f1a, #121816 60%, #1a1030);
-}
-.neon-box {
-  margin: 34% 16px 0;
-  text-align: center;
-  font-weight: 900;
-  font-size: 22px;
-  padding: 10px 12px;
-  border: 3px solid var(--brand-green);
-  box-shadow: 0 0 0 4px rgba(57, 181, 74, 0.2), 0 0 28px rgba(57, 181, 74, 0.35);
-  animation: neonPulse 1.8s ease-in-out infinite;
-}
-@keyframes neonPulse {
-  0%, 100% { box-shadow: 0 0 0 4px rgba(57, 181, 74, 0.18), 0 0 20px rgba(57, 181, 74, 0.25); }
-  50% { box-shadow: 0 0 0 6px rgba(57, 181, 74, 0.28), 0 0 36px rgba(57, 181, 74, 0.45); }
-}
-.neon-cap { bottom: 16%; color: #fff; }
-
-.theme-cut .timeline {
-  position: absolute;
-  left: 12px;
-  right: 12px;
-  top: 22%;
-  height: 18px;
-  display: flex;
-  gap: 4px;
-  z-index: 2;
-}
-.theme-cut .seg {
-  flex: 1;
-  border-radius: 4px;
-  background: rgba(255, 255, 255, 0.18);
-}
-.theme-cut .seg.cut {
-  flex: 0.35;
-  background: rgba(248, 113, 113, 0.45);
-  opacity: 0.55;
-}
-.theme-cut .seg.keep.active {
-  background: var(--brand-green);
-  animation: keepPulse 1.4s ease-in-out infinite;
-}
-@keyframes keepPulse {
-  0%, 100% { filter: brightness(1); }
-  50% { filter: brightness(1.25); }
-}
-.hook-badge {
-  margin: 42% 14px 0;
-  display: inline-block;
-  background: rgba(0, 0, 0, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  padding: 8px 12px;
-  border-radius: 12px;
-  font-weight: 800;
-  font-size: 13px;
-}
-
-.theme-split .split-pane {
-  height: 50%;
-  display: grid;
-  place-items: center;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.75);
-}
-.theme-split .top {
-  background: linear-gradient(160deg, #1d3a2c, #101816);
-  border-bottom: 2px solid rgba(57, 181, 74, 0.35);
-}
-.theme-split .bot {
-  background: linear-gradient(200deg, #142028, #0d1218);
-}
-.split-cap { bottom: 10%; }
-
-.theme-zoom .clip-bg.zooming {
-  animation: zoomPunch 2.8s ease-in-out infinite;
-  transform-origin: 55% 35%;
-}
-@keyframes zoomPunch {
-  0%, 100% { transform: scale(1); }
-  45%, 70% { transform: scale(1.35); }
-}
-.zoom-ring {
-  position: absolute;
-  top: 28%;
-  left: 48%;
-  width: 70px;
-  height: 70px;
-  border: 2px solid rgba(162, 255, 175, 0.7);
-  border-radius: 50%;
-  z-index: 2;
-  transform: translate(-50%, -50%);
-  animation: ringIn 2.8s ease-in-out infinite;
-}
-@keyframes ringIn {
-  0%, 100% { opacity: 0; transform: translate(-50%, -50%) scale(1.4); }
-  40%, 65% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-}
-
-.drop-card {
-  margin: 32% 16px 0;
-  background: rgba(0, 0, 0, 0.72);
-  border: 1px solid rgba(57, 181, 74, 0.4);
-  border-radius: 16px;
-  padding: 18px 14px;
-  text-align: center;
-  backdrop-filter: blur(8px);
-  animation: titleIn 0.8s ease both;
-}
-.drop-card small {
-  display: block;
-  color: var(--brand-green-2);
-  font-weight: 800;
-  letter-spacing: 0.12em;
-  margin-bottom: 6px;
-}
-.drop-card strong {
-  display: block;
-  font-size: 18px;
-  line-height: 1.25;
-}
-
-.punch-line {
-  margin: 40% 14px 0;
-  text-align: center;
-  font-size: 22px;
-  font-weight: 900;
-  line-height: 1.25;
-}
-.punch-line em {
-  font-style: normal;
-  color: #0b0b0b;
-  background: var(--brand-green-2);
-  padding: 0 6px;
-  border-radius: 6px;
-  display: inline-block;
-  animation: punch 1.6s ease-in-out infinite;
-}
-@keyframes punch {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.12); }
-}
-
-.progress-bar {
-  position: absolute;
-  left: 16px;
-  right: 16px;
-  bottom: 18px;
-  height: 3px;
-  background: rgba(255, 255, 255, 0.15);
-  border-radius: 99px;
-  overflow: hidden;
-  z-index: 2;
-}
-.progress-bar i {
-  display: block;
-  height: 100%;
-  width: 40%;
-  background: var(--brand-green);
-  border-radius: 99px;
-  animation: prog 2.4s linear infinite;
-}
-@keyframes prog {
-  from { transform: translateX(-100%); width: 30%; }
-  to { transform: translateX(280%); width: 55%; }
+.clip-slide:not(.has-video) .phone-label {
+  opacity: 1;
 }
 
 /* Showcase */
@@ -573,19 +405,21 @@ a:not(.btn):not(.social-icon):not(.jenovatech-link):not(.store-btn):not(.filter-
   transform: scale(1);
   pointer-events: auto;
 }
-.clip-slide.is-active .phone {
+.clip-slide.is-active .phone-bezel {
   box-shadow:
     0 28px 60px rgba(0, 0, 0, 0.55),
-    0 0 0 1px rgba(57, 181, 74, 0.2),
-    inset 0 0 0 3px #141414;
+    0 0 0 1px rgba(57, 181, 74, 0.22),
+    inset 0 0 0 2px #111;
 }
 @media (hover: hover) and (pointer: fine) {
   .clip-slide.is-active .phone:hover {
     transform: translateY(-10px) scale(1.03);
+  }
+  .clip-slide.is-active .phone:hover .phone-bezel {
     box-shadow:
       0 36px 70px rgba(0, 0, 0, 0.6),
-      0 0 40px rgba(57, 181, 74, 0.18),
-      inset 0 0 0 3px #141414;
+      0 0 40px rgba(57, 181, 74, 0.2),
+      inset 0 0 0 2px #111;
   }
 }
 
@@ -815,7 +649,7 @@ footer {
 @media (max-width: 767.98px) {
   .hero-section .display-3 { font-size: clamp(2rem, 9vw, 2.6rem); }
   .store-btn { width: 100%; justify-content: center; }
-  .phone { width: min(220px, 68vw); }
+  .phone { width: min(230px, 70vw); }
   .thumb-rail { grid-template-columns: repeat(2, 1fr); }
 }
 

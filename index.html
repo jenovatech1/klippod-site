@@ -10,9 +10,9 @@
     <meta property="og:title" content="Klippod — Auto Clip to Shorts" />
     <meta property="og:description" content="AI clips, TTS, title cards, karaoke subs — Android & Windows." />
     <meta property="og:url" content="https://jenovatech1.github.io/klippod-site/" />
-    <meta property="og:image" content="https://jenovatech1.github.io/klippod-site/assets/images/logo.svg" />
+    <meta property="og:image" content="https://jenovatech1.github.io/klippod-site/assets/images/logo.png" />
     <meta name="twitter:card" content="summary_large_image" />
-    <link rel="icon" type="image/svg+xml" href="assets/images/logo.svg" />
+    <link rel="icon" type="image/png" href="assets/images/logo.png" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet" />
@@ -25,7 +25,7 @@
     <nav class="navbar navbar-expand-lg navbar-dark bg-transparent fixed-top">
       <div class="container">
         <a class="navbar-brand d-flex align-items-center" href="#">
-          <img src="assets/images/logo.svg" alt="Klippod" width="30" height="30" class="me-2" />
+          <img src="assets/images/logo.png" alt="Klippod" width="32" height="32" class="brand-logo me-2" />
           <strong>Klippod</strong>
         </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-label="Toggle navigation">
@@ -83,14 +83,27 @@
         </div>
         <div class="col-lg-6">
           <div class="hero-stage" data-aos="fade-left" data-aos-delay="280">
-            <div class="phone hero-phone" aria-hidden="true">
-              <div class="phone-notch"></div>
-              <div class="clip-screen theme-tts is-playing">
-                <div class="clip-bg"></div>
-                <div class="title-card">WAIT — this changes everything</div>
-                <div class="tts-chip"><i class="bi bi-soundwave"></i> TTS voiceover</div>
-                <div class="caption karaoke"><span>auto</span> <span class="on">cut</span> <span>hooks</span></div>
-                <div class="clip-meta">TTS + Title Card</div>
+            <div class="phone hero-phone" id="heroPhone">
+              <div class="phone-bezel">
+                <div class="phone-notch"></div>
+                <div class="phone-screen">
+                  <video
+                    id="heroVideo"
+                    class="phone-video"
+                    playsinline
+                    muted
+                    loop
+                    autoplay
+                    preload="metadata"
+                  ></video>
+                  <div class="phone-fallback" id="heroFallback">
+                    <img src="assets/images/logo.png" alt="" class="fallback-logo" />
+                    <span>Upload clip → plays here</span>
+                  </div>
+                  <button type="button" class="phone-mute" id="heroMute" aria-label="Toggle sound" hidden>
+                    <i class="bi bi-volume-mute-fill"></i>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -98,14 +111,13 @@
       </div>
     </section>
 
-    <!-- SHOWCASE: main content -->
     <section id="showcase" class="showcase-section">
       <div class="container">
         <div class="text-center mb-4 mb-lg-5" data-aos="fade-up">
           <p class="eyebrow">Results gallery</p>
           <h2 class="display-5 fw-bold">See what Klippod makes</h2>
           <p class="lead section-lead mx-auto">
-            Hover, swipe, or tap a style — each card shows a vertical clip treatment you can ship to TikTok / Reels / Shorts.
+            Real exports inside a phone mockup. Swipe or tap a style — drop your vertical <code>.mp4</code> into <code>assets/clips/</code> and it plays here.
           </p>
         </div>
 
@@ -119,111 +131,9 @@
 
         <div class="showcase-stage" data-aos="fade-up" data-aos-delay="120">
           <button class="nav-arrow prev" type="button" aria-label="Previous clip"><i class="bi bi-chevron-left"></i></button>
-
           <div class="showcase-viewport">
-            <div class="showcase-track" id="showcaseTrack">
-              <!-- slides injected / also static for no-js -->
-              <article class="clip-slide is-active" data-tags="tts" data-title="TTS + Title Card" data-desc="Hook text on screen + AI voiceover for silent scrollers.">
-                <div class="phone">
-                  <div class="phone-notch"></div>
-                  <div class="clip-screen theme-tts">
-                    <div class="clip-bg"></div>
-                    <div class="title-card">3 mistakes killing your retention</div>
-                    <div class="tts-chip"><i class="bi bi-soundwave"></i> Speaking…</div>
-                    <div class="caption"><span class="on">listen</span> <span>closely</span></div>
-                  </div>
-                </div>
-              </article>
-
-              <article class="clip-slide" data-tags="subs" data-title="Karaoke Sweep" data-desc="Word-by-word highlight that rides the audio beat.">
-                <div class="phone">
-                  <div class="phone-notch"></div>
-                  <div class="clip-screen theme-karaoke">
-                    <div class="clip-bg"></div>
-                    <div class="caption karaoke big">
-                      <span>this</span> <span class="on">line</span> <span>hits</span> <span>hard</span>
-                    </div>
-                    <div class="progress-bar"><i></i></div>
-                  </div>
-                </div>
-              </article>
-
-              <article class="clip-slide" data-tags="subs" data-title="Opus Beat / Neon Box" data-desc="Bold border-pop captions with neon box punch.">
-                <div class="phone">
-                  <div class="phone-notch"></div>
-                  <div class="clip-screen theme-neon">
-                    <div class="clip-bg"></div>
-                    <div class="neon-box">STOP scrolling</div>
-                    <div class="caption neon-cap">border pop · fill flash</div>
-                  </div>
-                </div>
-              </article>
-
-              <article class="clip-slide" data-tags="cut" data-title="Auto Cut + AI Hooks" data-desc="Silence trim + hook scoring so the first 3 seconds pull.">
-                <div class="phone">
-                  <div class="phone-notch"></div>
-                  <div class="clip-screen theme-cut">
-                    <div class="clip-bg"></div>
-                    <div class="timeline">
-                      <div class="seg keep"></div>
-                      <div class="seg cut"></div>
-                      <div class="seg keep"></div>
-                      <div class="seg cut"></div>
-                      <div class="seg keep active"></div>
-                    </div>
-                    <div class="hook-badge">🔥 Hook score 92</div>
-                    <div class="caption"><span class="on">viral</span> <span>open</span></div>
-                  </div>
-                </div>
-              </article>
-
-              <article class="clip-slide" data-tags="layout" data-title="Dual Split" data-desc="Reaction + source side-by-side for podcast / commentary.">
-                <div class="phone">
-                  <div class="phone-notch"></div>
-                  <div class="clip-screen theme-split">
-                    <div class="split-pane top"><span>Host</span></div>
-                    <div class="split-pane bot"><span>Guest</span></div>
-                    <div class="caption split-cap"><span class="on">dual</span> <span>layout</span></div>
-                  </div>
-                </div>
-              </article>
-
-              <article class="clip-slide" data-tags="layout" data-title="Emphasis Zoom" data-desc="Auto punch-in on faces and key moments.">
-                <div class="phone">
-                  <div class="phone-notch"></div>
-                  <div class="clip-screen theme-zoom">
-                    <div class="clip-bg zooming"></div>
-                    <div class="zoom-ring"></div>
-                    <div class="caption"><span>face</span> <span class="on">focus</span></div>
-                  </div>
-                </div>
-              </article>
-
-              <article class="clip-slide" data-tags="tts" data-title="Title Card Drop" data-desc="Bold cold-open card before the first spoken line.">
-                <div class="phone">
-                  <div class="phone-notch"></div>
-                  <div class="clip-screen theme-drop">
-                    <div class="clip-bg"></div>
-                    <div class="drop-card">
-                      <small>EP. 12</small>
-                      <strong>Why this hack works</strong>
-                    </div>
-                  </div>
-                </div>
-              </article>
-
-              <article class="clip-slide" data-tags="subs" data-title="Punch Reveal" data-desc="One word punches in while the rest stays soft.">
-                <div class="phone">
-                  <div class="phone-notch"></div>
-                  <div class="clip-screen theme-punch">
-                    <div class="clip-bg"></div>
-                    <div class="punch-line">never <em>guess</em> again</div>
-                  </div>
-                </div>
-              </article>
-            </div>
+            <div class="showcase-track" id="showcaseTrack"></div>
           </div>
-
           <button class="nav-arrow next" type="button" aria-label="Next clip"><i class="bi bi-chevron-right"></i></button>
         </div>
 
@@ -236,7 +146,7 @@
         <div class="thumb-rail" id="thumbRail" data-aos="fade-up" aria-label="All clip previews"></div>
 
         <p class="replace-hint text-center text-muted">
-          Tip: drop real <code>.mp4</code> files into <code>assets/clips/</code> later — the frames above are interactive demos of each style.
+          Upload: put <code>tts-title.mp4</code>, <code>karaoke.mp4</code>, … in <code>assets/clips/</code> (names in <code>assets/js/clips-data.js</code>), then push.
         </p>
       </div>
     </section>
@@ -336,7 +246,7 @@
         <div class="row align-items-center">
           <div class="col-md-4 text-md-start">
             <a class="navbar-brand d-flex align-items-center justify-content-center justify-content-md-start" href="#">
-              <img src="assets/images/logo.svg" alt="Klippod" width="30" height="30" class="me-2" />
+              <img src="assets/images/logo.png" alt="Klippod" width="32" height="32" class="brand-logo me-2" />
               <strong>Klippod</strong>
             </a>
           </div>
@@ -359,6 +269,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
+    <script src="assets/js/clips-data.js"></script>
     <script src="assets/js/main.js"></script>
   </body>
 </html>

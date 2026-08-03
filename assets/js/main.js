@@ -5,7 +5,7 @@ document.addEventListener("DOMContentLoaded", () => {
   if (window.AOS) AOS.init({ duration: 800, once: true });
 });
 
-/* Particles — same vibe as SeedSafe */
+/* Particles — SeedSafe vibe */
 document.addEventListener("DOMContentLoaded", () => {
   if ("scrollRestoration" in history) history.scrollRestoration = "manual";
   if (!location.hash) {
@@ -52,7 +52,7 @@ document.addEventListener("DOMContentLoaded", () => {
   updateNavBg();
 });
 
-/* Smooth scroll + close mobile menu */
+/* Smooth scroll */
 document.addEventListener("DOMContentLoaded", () => {
   const navbarCollapse = document.getElementById("navbarNav");
   document.querySelectorAll('a[href^="#"]').forEach((a) => {
@@ -66,19 +66,76 @@ document.addEventListener("DOMContentLoaded", () => {
       const top = el.getBoundingClientRect().top + window.pageYOffset - offset;
       window.scrollTo({ top, behavior: "smooth" });
       if (navbarCollapse?.classList.contains("show")) {
-        const inst = bootstrap.Collapse.getInstance(navbarCollapse);
-        inst?.hide();
+        bootstrap.Collapse.getInstance(navbarCollapse)?.hide();
       }
     });
   });
 });
 
-/* Showcase carousel */
+function posterFor(src) {
+  if (!src) return "";
+  return src.replace(/\.mp4($|\?)/i, ".jpg$1");
+}
+
+function bindPhoneVideo(video, fallback, src, { muted = true, autoplay = true } = {}) {
+  if (!video || !src) return;
+  const onReady = () => {
+    video.classList.add("is-ready");
+    fallback?.classList.add("is-hidden");
+    if (autoplay) video.play().catch(() => {});
+  };
+  const onFail = () => {
+    video.classList.remove("is-ready");
+    fallback?.classList.remove("is-hidden");
+    video.removeAttribute("src");
+    video.load();
+  };
+
+  video.muted = muted;
+  video.playsInline = true;
+  video.loop = true;
+  video.preload = "metadata";
+  video.setAttribute("playsinline", "");
+  video.poster = posterFor(src);
+
+  video.onloadeddata = onReady;
+  video.oncanplay = onReady;
+  video.onerror = onFail;
+  video.src = src;
+  video.load();
+}
+
+/* Hero phone uses first available clip */
+document.addEventListener("DOMContentLoaded", () => {
+  const clips = window.KLIPPOD_CLIPS || [];
+  const video = document.getElementById("heroVideo");
+  const fallback = document.getElementById("heroFallback");
+  const muteBtn = document.getElementById("heroMute");
+  if (!video || !clips.length) return;
+
+  const first = clips[0];
+  bindPhoneVideo(video, fallback, first.src, { muted: true, autoplay: true });
+
+  const revealMute = () => {
+    if (video.classList.contains("is-ready") && muteBtn) muteBtn.hidden = false;
+  };
+  video.addEventListener("loadeddata", revealMute);
+
+  muteBtn?.addEventListener("click", () => {
+    video.muted = !video.muted;
+    muteBtn.innerHTML = video.muted
+      ? '<i class="bi bi-volume-mute-fill"></i>'
+      : '<i class="bi bi-volume-up-fill"></i>';
+    video.play().catch(() => {});
+  });
+});
+
+/* Showcase carousel with video-in-phone */
 document.addEventListener("DOMContentLoaded", () => {
   const track = document.getElementById("showcaseTrack");
-  if (!track) return;
+  const clips = window.KLIPPOD_CLIPS || [];
+  if (!track || !clips.length) return;
 
-  const slides = Array.from(track.querySelectorAll(".clip-slide"));
   const titleEl = document.getElementById("slideTitle");
   const descEl = document.getElementById("slideDesc");
   const dotsEl = document.getElementById("slideDots");
@@ -94,6 +151,58 @@ document.addEventListener("DOMContentLoaded", () => {
     layout: "bi-layout-split",
   };
 
+  // Build slides once
+  track.innerHTML = clips
+    .map(
+      (c, i) => `
+    <article class="clip-slide${i === 0 ? " is-active" : ""}" data-id="${c.id}" data-tags="${c.tags}" data-title="${c.title}" data-desc="${c.desc}" data-src="${c.src}">
+      <div class="phone">
+        <div class="phone-bezel">
+          <div class="phone-notch"></div>
+          <div class="phone-screen">
+            <video class="phone-video" playsinline muted loop preload="metadata"></video>
+            <div class="phone-fallback">
+              <img src="assets/images/logo.png" alt="" class="fallback-logo" />
+              <span>Drop <code>${(c.src || "").split("/").pop()}</code></span>
+            </div>
+            <div class="phone-label">${c.title}</div>
+            <button type="button" class="phone-mute" aria-label="Toggle sound" hidden>
+              <i class="bi bi-volume-mute-fill"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </article>`
+    )
+    .join("");
+
+  const slides = Array.from(track.querySelectorAll(".clip-slide"));
+
+  // Probe / bind each video
+  slides.forEach((slide) => {
+    const video = slide.querySelector(".phone-video");
+    const fallback = slide.querySelector(".phone-fallback");
+    const muteBtn = slide.querySelector(".phone-mute");
+    const src = slide.dataset.src;
+    bindPhoneVideo(video, fallback, src, { muted: true, autoplay: false });
+
+    video?.addEventListener("loadeddata", () => {
+      slide.classList.add("has-video");
+      if (muteBtn) muteBtn.hidden = false;
+    });
+    video?.addEventListener("error", () => slide.classList.remove("has-video"));
+
+    muteBtn?.addEventListener("click", (e) => {
+      e.stopPropagation();
+      if (!video) return;
+      video.muted = !video.muted;
+      muteBtn.innerHTML = video.muted
+        ? '<i class="bi bi-volume-mute-fill"></i>'
+        : '<i class="bi bi-volume-up-fill"></i>';
+      video.play().catch(() => {});
+    });
+  });
+
   let filter = "all";
   let index = 0;
   let timer = null;
@@ -105,26 +214,28 @@ document.addEventListener("DOMContentLoaded", () => {
       .map((s, i) => ({ s, i }))
       .filter(({ s }) => filter === "all" || (s.dataset.tags || "").includes(filter));
 
-  const syncKaraoke = (slide) => {
-    const words = slide.querySelectorAll(".caption.karaoke span, .caption span");
-    if (!words.length) return;
-    words.forEach((w) => w.classList.remove("on"));
-    let i = 0;
-    const tick = () => {
-      words.forEach((w) => w.classList.remove("on"));
-      words[i % words.length].classList.add("on");
-      i += 1;
-    };
-    tick();
-    if (slide._kar) clearInterval(slide._kar);
-    slide._kar = setInterval(tick, 700);
+  const pauseAll = () => {
+    slides.forEach((s) => {
+      const v = s.querySelector(".phone-video");
+      if (v && !v.paused) v.pause();
+    });
+  };
+
+  const playActive = () => {
+    const list = visible();
+    if (!list.length) return;
+    const slide = list[index]?.s;
+    const video = slide?.querySelector(".phone-video");
+    if (!video || !slide.classList.contains("has-video")) return;
+    video.currentTime = 0;
+    video.play().catch(() => {});
   };
 
   const renderChrome = () => {
     const list = visible();
     dotsEl.innerHTML = "";
     thumbsEl.innerHTML = "";
-    list.forEach(({ s, i }, localIdx) => {
+    list.forEach(({ s }, localIdx) => {
       const dot = document.createElement("button");
       dot.type = "button";
       dot.setAttribute("aria-label", `Go to slide ${localIdx + 1}`);
@@ -148,18 +259,14 @@ document.addEventListener("DOMContentLoaded", () => {
     if (index >= list.length) index = 0;
     const currentGlobal = list[index].i;
 
+    pauseAll();
+
     slides.forEach((s, i) => {
       const show = list.some((x) => x.i === i);
       s.style.display = show ? "" : "none";
       s.classList.toggle("is-active", i === currentGlobal);
-      if (s._kar && i !== currentGlobal) {
-        clearInterval(s._kar);
-        s._kar = null;
-      }
     });
 
-    // Rebuild track order visually via transform on visible-only? Keep all in DOM but only advance among visible.
-    // Simpler: set transform based on active slide's offset among ALL displayed flex items that aren't display:none.
     const shown = slides.filter((s) => s.style.display !== "none");
     const activeShownIdx = shown.findIndex((s) => s.classList.contains("is-active"));
     track.style.transform = `translateX(-${Math.max(0, activeShownIdx) * 100}%)`;
@@ -167,8 +274,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const active = slides[currentGlobal];
     if (titleEl) titleEl.textContent = active.dataset.title || "";
     if (descEl) descEl.textContent = active.dataset.desc || "";
-    syncKaraoke(active);
     renderChrome();
+    playActive();
   };
 
   const go = (localIdx, user) => {
@@ -186,7 +293,7 @@ document.addEventListener("DOMContentLoaded", () => {
     clearInterval(timer);
     timer = setInterval(() => {
       if (!touching && !document.hidden) next(false);
-    }, 4200);
+    }, 5200);
   };
 
   filters.forEach((btn) => {
@@ -226,10 +333,14 @@ document.addEventListener("DOMContentLoaded", () => {
     { passive: true }
   );
 
-  // Pause autoplay while hovering stage
   const stage = document.querySelector(".showcase-stage");
   stage?.addEventListener("mouseenter", () => clearInterval(timer));
   stage?.addEventListener("mouseleave", restart);
+
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) pauseAll();
+    else playActive();
+  });
 
   apply();
   restart();
