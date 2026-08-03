@@ -1,6 +1,5 @@
 /**
- * Showcase — Drive file id (share: Anyone with the link).
- * drive: "FILE_ID"  OR  src: "https://cdn.../file.mp4" (direct mp4)
+ * Showcase — Drive file id (Anyone with the link) OR direct src mp4 URL.
  */
 window.KLIPPOD_CLIPS = [
   {
@@ -23,12 +22,14 @@ window.KLIPPOD_CLIPS = [
   },
 ];
 
-window.klippodDrivePreview = function (id) {
-  return `https://drive.google.com/file/d/${encodeURIComponent(id)}/preview`;
+/** Direct stream for <video> — autoplay + object-fit cover. */
+window.klippodDriveStreamCandidates = function (id) {
+  const enc = encodeURIComponent(id);
+  return [
+    `https://drive.usercontent.google.com/download?id=${enc}&export=download&confirm=t`,
+  ];
 };
 
-window.klippodClipSrc = function (clip) {
-  const id = (clip.drive || "").trim();
-  if (id) return window.klippodDrivePreview(id);
-  return clip.src || "";
+window.klippodDrivePreview = function (id) {
+  return `https://drive.google.com/file/d/${encodeURIComponent(id)}/preview`;
 };
