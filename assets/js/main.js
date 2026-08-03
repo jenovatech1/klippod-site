@@ -97,7 +97,7 @@ function bindPhoneVideo(video, fallback, src, { muted = true, autoplay = true, o
   video.loop = true;
   video.preload = "metadata";
   video.setAttribute("playsinline", "");
-  video.poster = posterFor(src);
+  if (!/^https?:\/\//i.test(src)) video.poster = posterFor(src);
 
   video.onloadeddata = markReady;
   video.oncanplay = markReady;
@@ -105,31 +105,6 @@ function bindPhoneVideo(video, fallback, src, { muted = true, autoplay = true, o
   video.src = src;
   video.load();
 }
-
-/* Hero phone uses first available clip */
-document.addEventListener("DOMContentLoaded", () => {
-  const clips = window.KLIPPOD_CLIPS || [];
-  const video = document.getElementById("heroVideo");
-  const fallback = document.getElementById("heroFallback");
-  const muteBtn = document.getElementById("heroMute");
-  if (!video || !clips.length) return;
-
-  bindPhoneVideo(video, fallback, window.klippodClipSrc(clips[0]), {
-    muted: true,
-    autoplay: true,
-    onReady: () => {
-      if (muteBtn) muteBtn.hidden = false;
-    },
-  });
-
-  muteBtn?.addEventListener("click", () => {
-    video.muted = !video.muted;
-    muteBtn.innerHTML = video.muted
-      ? '<i class="bi bi-volume-mute-fill"></i>'
-      : '<i class="bi bi-volume-up-fill"></i>';
-    video.play().catch(() => {});
-  });
-});
 
 /* Showcase — phone video + title/desc + dots. Autoplay active only. */
 document.addEventListener("DOMContentLoaded", () => {
